@@ -297,6 +297,18 @@ void VideoForm::installShortcut()
         emit device->setDisplayPower(false);
     });
 
+
+    shortcut = new QShortcut(QKeySequence("Ctrl+Shift+o"), this);
+    shortcut->setAutoRepeat(false);
+    connect(shortcut, &QShortcut::activated, this, [this]() {
+        auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
+        if (!device) {
+            return;
+        }
+        emit device->setDisplayPower(true);
+    });
+
+
     // expandNotificationPanel
     shortcut = new QShortcut(QKeySequence("Ctrl+n"), this);
     shortcut->setAutoRepeat(false);
