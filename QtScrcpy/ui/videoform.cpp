@@ -362,6 +362,16 @@ void VideoForm::installShortcut()
         device->postGoHome();
     });
 
+    shortcut = new QShortcut(QKeySequence("Ctrl+shift+h"), this);
+    shortcut->setAutoRepeat(false);
+    connect(shortcut, &QShortcut::activated, this, [this]() {
+        auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
+        if (!device) {
+            return;
+        }
+        device->postGoHome();
+    });
+
     // postGoBack
     shortcut = new QShortcut(QKeySequence("Ctrl+b"), this);
     shortcut->setAutoRepeat(false);
