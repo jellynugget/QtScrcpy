@@ -133,6 +133,22 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="autoConnectCheckBox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>auto connect</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>

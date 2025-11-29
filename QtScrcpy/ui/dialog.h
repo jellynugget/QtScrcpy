@@ -12,6 +12,7 @@
 
 #include "adbprocess.h"
 #include "../QtScrcpyCore/include/QtScrcpyCore.h"
+#include "../QtScrcpyCore/src/adb/adbdevicemonitor.h"
 #include "audio/audiooutput.h"
 
 namespace Ui
@@ -67,6 +68,8 @@ private slots:
 
     void on_autoUpdatecheckBox_toggled(bool checked);
 
+    void on_autoConnectCheckBox_toggled(bool checked);
+
     void showIpEditMenu(const QPoint &pos);
 
 private:
@@ -91,8 +94,12 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private:
+    void autoConnectToDevice(const QString &serial);
+
+private:
     Ui::Widget *ui;
     qsc::AdbProcess m_adb;
+    qsc::AdbDeviceMonitor *m_deviceMonitor;
     QSystemTrayIcon *m_hideIcon;
     QMenu *m_menu;
     QAction *m_showWindow;
