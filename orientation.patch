@@ -1,0 +1,543 @@
+diff --git a/QtScrcpy/QtScrcpyCore b/QtScrcpy/QtScrcpyCore
+index c61d9d3..1aeb862 160000
+--- a/QtScrcpy/QtScrcpyCore
++++ b/QtScrcpy/QtScrcpyCore
+@@ -1 +1 @@
+-Subproject commit c61d9d3324fa0338baeab91410bcb44648678cb4
++Subproject commit 1aeb862f1530fa0c956d686bb04c0d38d8adcd6a
+diff --git a/QtScrcpy/groupcontroller/groupcontroller.cpp b/QtScrcpy/groupcontroller/groupcontroller.cpp
+index 24b3c8e..bfa7fca 100644
+--- a/QtScrcpy/groupcontroller/groupcontroller.cpp
++++ b/QtScrcpy/groupcontroller/groupcontroller.cpp
+@@ -8,14 +8,24 @@ GroupController::GroupController(QObject *parent) : QObject(parent)
+ 
+ }
+ 
+-bool GroupController::isHost(const QString &serial)
++bool GroupController::isHostDevice(const QString &serial) const
+ {
+-    auto data = qsc::IDeviceManage::getInstance().getDevice(serial)->getUserData();
+-    if (!data) {
+-        return true;
++    return m_hosts.contains(serial);
++}
++
++void GroupController::setHost(const QString &serial, bool host)
++{
++    if (serial.isEmpty()) {
++        return;
+     }
+ 
+-    return static_cast<VideoForm*>(data)->isHost();
++    if (host) {
++        m_hosts.insert(serial);
++    } else {
++        m_hosts.remove(serial);
++    }
++
++    updateDeviceState(serial);
+ }
+ 
+ QSize GroupController::getFrameSize(const QString &serial)
+@@ -45,7 +55,7 @@ void GroupController::updateDeviceState(const QString &serial)
+         return;
+     }
+ 
+-    if (isHost(serial)) {
++    if (isHostDevice(serial)) {
+         device->registerDeviceObserver(this);
+     } else {
+         device->deRegisterDeviceObserver(this);
+@@ -59,6 +69,7 @@ void GroupController::addDevice(const QString &serial)
+     }
+ 
+     m_devices.append(serial);
++    updateDeviceState(serial);
+ }
+ 
+ void GroupController::removeDevice(const QString &serial)
+@@ -74,7 +85,7 @@ void GroupController::removeDevice(const QString &serial)
+         return;
+     }
+ 
+-    if (isHost(serial)) {
++    if (isHostDevice(serial)) {
+         device->deRegisterDeviceObserver(this);
+     }
+ }
+@@ -83,7 +94,7 @@ void GroupController::mouseEvent(const QMouseEvent *from, const QSize &frameSize
+ {
+     Q_UNUSED(frameSize);
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -99,7 +110,7 @@ void GroupController::wheelEvent(const QWheelEvent *from, const QSize &frameSize
+ {
+     Q_UNUSED(frameSize);
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -115,7 +126,7 @@ void GroupController::keyEvent(const QKeyEvent *from, const QSize &frameSize, co
+ {
+     Q_UNUSED(frameSize);
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -130,7 +141,7 @@ void GroupController::keyEvent(const QKeyEvent *from, const QSize &frameSize, co
+ void GroupController::postGoBack()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -145,7 +156,7 @@ void GroupController::postGoBack()
+ void GroupController::postGoHome()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -160,7 +171,7 @@ void GroupController::postGoHome()
+ void GroupController::postGoMenu()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -175,7 +186,7 @@ void GroupController::postGoMenu()
+ void GroupController::postAppSwitch()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -190,7 +201,7 @@ void GroupController::postAppSwitch()
+ void GroupController::postPower()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -205,7 +216,7 @@ void GroupController::postPower()
+ void GroupController::postVolumeUp()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -220,7 +231,7 @@ void GroupController::postVolumeUp()
+ void GroupController::postVolumeDown()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -235,7 +246,7 @@ void GroupController::postVolumeDown()
+ void GroupController::postCopy()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -250,7 +261,7 @@ void GroupController::postCopy()
+ void GroupController::postCut()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -265,7 +276,7 @@ void GroupController::postCut()
+ void GroupController::setDisplayPower(bool on)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -280,7 +291,7 @@ void GroupController::setDisplayPower(bool on)
+ void GroupController::expandNotificationPanel()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -295,7 +306,7 @@ void GroupController::expandNotificationPanel()
+ void GroupController::collapsePanel()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -310,7 +321,7 @@ void GroupController::collapsePanel()
+ void GroupController::postBackOrScreenOn(bool down)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -325,7 +336,7 @@ void GroupController::postBackOrScreenOn(bool down)
+ void GroupController::postTextInput(QString &text)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -340,7 +351,7 @@ void GroupController::postTextInput(QString &text)
+ void GroupController::requestDeviceClipboard()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -355,7 +366,7 @@ void GroupController::requestDeviceClipboard()
+ void GroupController::setDeviceClipboard(bool pause)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -370,7 +381,7 @@ void GroupController::setDeviceClipboard(bool pause)
+ void GroupController::clipboardPaste()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -385,7 +396,7 @@ void GroupController::clipboardPaste()
+ void GroupController::pushFileRequest(const QString &file, const QString &devicePath)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -400,7 +411,7 @@ void GroupController::pushFileRequest(const QString &file, const QString &device
+ void GroupController::installApkRequest(const QString &apkFile)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -415,7 +426,7 @@ void GroupController::installApkRequest(const QString &apkFile)
+ void GroupController::screenshot()
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -430,7 +441,7 @@ void GroupController::screenshot()
+ void GroupController::showTouch(bool show)
+ {
+     for (const auto& serial : m_devices) {
+-        if (true == isHost(serial)) {
++        if (true == isHostDevice(serial)) {
+             continue;
+         }
+         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
+@@ -441,3 +452,18 @@ void GroupController::showTouch(bool show)
+         device->showTouch(show);
+     }
+ }
++
++void GroupController::setCaptureOrientation(int captureOrientation)
++{
++    for (const auto& serial : m_devices) {
++        if (true == isHostDevice(serial)) {
++            continue;
++        }
++        auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
++        if (!device) {
++            continue;
++        }
++
++        device->setCaptureOrientation(captureOrientation);
++    }
++}
+diff --git a/QtScrcpy/groupcontroller/groupcontroller.h b/QtScrcpy/groupcontroller/groupcontroller.h
+index f0a0f2b..a00c43f 100644
+--- a/QtScrcpy/groupcontroller/groupcontroller.h
++++ b/QtScrcpy/groupcontroller/groupcontroller.h
+@@ -2,6 +2,7 @@
+ #define GROUPCONTROLLER_H
+ 
+ #include <QObject>
++#include <QSet>
+ #include <QVector>
+ 
+ #include "QtScrcpyCore.h"
+@@ -12,6 +13,8 @@ class GroupController : public QObject, public qsc::DeviceObserver
+ public:
+     static GroupController& instance();
+ 
++    bool isHostDevice(const QString& serial) const;
++    void setHost(const QString& serial, bool host);
+     void updateDeviceState(const QString& serial);
+     void addDevice(const QString& serial);
+     void removeDevice(const QString& serial);
+@@ -43,14 +46,15 @@ private:
+     void installApkRequest(const QString &apkFile) override;
+     void screenshot() override;
+     void showTouch(bool show) override;
++    void setCaptureOrientation(int captureOrientation) override;
+ 
+ private:
+     explicit GroupController(QObject *parent = nullptr);
+-    bool isHost(const QString& serial);
+     QSize getFrameSize(const QString& serial);
+ 
+ private:
+     QVector<QString> m_devices;
++    QSet<QString> m_hosts;
+ };
+ 
+ #endif // GROUPCONTROLLER_H
+diff --git a/QtScrcpy/ui/toolform.cpp b/QtScrcpy/ui/toolform.cpp
+index d240a1f..fae62c9 100644
+--- a/QtScrcpy/ui/toolform.cpp
++++ b/QtScrcpy/ui/toolform.cpp
+@@ -28,11 +28,18 @@ ToolForm::~ToolForm()
+ void ToolForm::setSerial(const QString &serial)
+ {
+     m_serial = serial;
++    updateGroupControl();
+ }
+ 
+ bool ToolForm::isHost()
+ {
+-    return m_isHost;
++    return GroupController::instance().isHostDevice(m_serial);
++}
++
++void ToolForm::setHost(bool host)
++{
++    GroupController::instance().setHost(m_serial, host);
++    updateGroupControl();
+ }
+ 
+ void ToolForm::initStyle()
+@@ -57,7 +64,7 @@ void ToolForm::initStyle()
+ 
+ void ToolForm::updateGroupControl()
+ {
+-    if (m_isHost) {
++    if (isHost()) {
+         ui->groupControlBtn->setStyleSheet("color: red");
+     } else {
+         ui->groupControlBtn->setStyleSheet("color: green");
+@@ -220,8 +227,7 @@ void ToolForm::on_touchBtn_clicked()
+ 
+ void ToolForm::on_groupControlBtn_clicked()
+ {
+-    m_isHost = !m_isHost;
+-    updateGroupControl();
++    setHost(!isHost());
+ }
+ 
+ void ToolForm::on_openScreenBtn_clicked()
+@@ -240,4 +246,4 @@ void ToolForm::on_clipboardBtn_clicked()
+         return;
+     }
+     device->requestDeviceClipboard();
+-}
+\ No newline at end of file
++}
+diff --git a/QtScrcpy/ui/toolform.h b/QtScrcpy/ui/toolform.h
+index f3c2f42..d6cbc80 100644
+--- a/QtScrcpy/ui/toolform.h
++++ b/QtScrcpy/ui/toolform.h
+@@ -23,6 +23,7 @@ public:
+ 
+     void setSerial(const QString& serial);
+     bool isHost();
++    void setHost(bool host);
+ 
+ protected:
+     void mousePressEvent(QMouseEvent *event);
+@@ -58,7 +59,6 @@ private:
+     QPoint m_dragPosition;
+     QString m_serial;
+     bool m_showTouch = false;
+-    bool m_isHost = false;
+ };
+ 
+ #endif // TOOLFORM_H
+diff --git a/QtScrcpy/ui/videoform.cpp b/QtScrcpy/ui/videoform.cpp
+index 5839f1c..33301bc 100644
+--- a/QtScrcpy/ui/videoform.cpp
++++ b/QtScrcpy/ui/videoform.cpp
+@@ -18,6 +18,7 @@
+ #endif
+ 
+ #include "config.h"
++#include "../groupcontroller/groupcontroller.h"
+ #include "iconhelper.h"
+ #include "qyuvopenglwidget.h"
+ #include "toolform.h"
+@@ -78,6 +79,12 @@ void VideoForm::initUI()
+     m_fpsLabel->setMinimumWidth(100);
+     m_fpsLabel->setStyleSheet(R"(QLabel {color: #00FF00;})");
+ 
++    m_noticeLabel = new QLabel(m_videoWidget);
++    m_noticeLabel->hide();
++    m_noticeLabel->move(5, 40);
++    m_noticeLabel->setMinimumWidth(220);
++    m_noticeLabel->setStyleSheet(R"(QLabel {color: #FFFFFF; background-color: rgba(0, 0, 0, 160); padding: 4px 8px; border-radius: 4px;})");
++
+     setMouseTracking(true);
+     m_videoWidget->setMouseTracking(true);
+     ui->keepRatioWidget->setMouseTracking(true);
+@@ -190,6 +197,24 @@ void VideoForm::moveCenter()
+ void VideoForm::installShortcut()
+ {
+     QShortcut *shortcut = nullptr;
++    auto installCaptureOrientationShortcut = [this](const QString &keySequence, int captureOrientation) {
++        QShortcut *orientationShortcut = new QShortcut(QKeySequence(keySequence), this);
++        orientationShortcut->setAutoRepeat(false);
++        connect(orientationShortcut, &QShortcut::activated, this, [this, captureOrientation]() {
++            auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
++            if (!device) {
++                return;
++            }
++
++            showNotice(tr("Reconnecting for orientation %1°...").arg(captureOrientation));
++            QTimer::singleShot(200, this, [device, captureOrientation]() {
++                if (!device) {
++                    return;
++                }
++                emit device->setCaptureOrientation(captureOrientation);
++            });
++        });
++    };
+ 
+     // switchFullScreen
+     shortcut = new QShortcut(QKeySequence("Ctrl+f"), this);
+@@ -318,6 +343,11 @@ void VideoForm::installShortcut()
+         emit device->setDisplayPower(true);
+     });
+ 
++    installCaptureOrientationShortcut("Ctrl+1", 0);
++    installCaptureOrientationShortcut("Ctrl+2", 90);
++    installCaptureOrientationShortcut("Ctrl+3", 180);
++    installCaptureOrientationShortcut("Ctrl+4", 270);
++
+ 
+     // expandNotificationPanel
+     shortcut = new QShortcut(QKeySequence("Ctrl+n"), this);
+@@ -404,6 +434,23 @@ QRect VideoForm::getScreenRect()
+     return screenRect;
+ }
+ 
++void VideoForm::showNotice(const QString &text, int timeoutMs)
++{
++    if (!m_noticeLabel) {
++        return;
++    }
++
++    m_noticeLabel->setText(text);
++    m_noticeLabel->adjustSize();
++    m_noticeLabel->show();
++    m_noticeLabel->raise();
++    QTimer::singleShot(timeoutMs, this, [this, text]() {
++        if (m_noticeLabel && m_noticeLabel->text() == text) {
++            m_noticeLabel->hide();
++        }
++    });
++}
++
+ void VideoForm::updateStyleSheet(bool vertical)
+ {
+     if (vertical) {
+@@ -537,10 +584,7 @@ void VideoForm::switchFullScreen()
+ 
+ bool VideoForm::isHost()
+ {
+-    if (!m_toolForm) {
+-        return false;
+-    }
+-    return m_toolForm->isHost();
++    return GroupController::instance().isHostDevice(m_serial);
+ }
+ 
+ void VideoForm::updateFPS(quint32 fps)
+diff --git a/QtScrcpy/ui/videoform.h b/QtScrcpy/ui/videoform.h
+index 75b032a..824842f 100644
+--- a/QtScrcpy/ui/videoform.h
++++ b/QtScrcpy/ui/videoform.h
+@@ -48,6 +48,7 @@ private:
+     void moveCenter();
+     void installShortcut();
+     QRect getScreenRect();
++    void showNotice(const QString &text, int timeoutMs = 1200);
+ 
+ protected:
+     void mousePressEvent(QMouseEvent *event) override;
+@@ -75,6 +76,7 @@ private:
+     QPointer<QWidget> m_loadingWidget;
+     QPointer<QYUVOpenGLWidget> m_videoWidget;
+     QPointer<QLabel> m_fpsLabel;
++    QPointer<QLabel> m_noticeLabel;
+ 
+     //inside member
+     QSize m_frameSize;
+diff --git a/README.md b/README.md
+index 9dbfb42..782c30e 100644
+--- a/README.md
++++ b/README.md
+@@ -242,6 +242,10 @@ Note: it is not necessary to keep your Android device connected via USB after yo
+  | Click on `POWER`                       | `Ctrl`+`p`                    | `Cmd`+`p`
+  | Power on                               | _Right-click²_                | _Right-click²_
+  | Turn device screen off (keep mirroring)| `Ctrl`+`o`                    | `Cmd`+`o`
++ | Set capture orientation to `0`         | `Ctrl`+`1`                    | `Cmd`+`1`
++ | Set capture orientation to `90`        | `Ctrl`+`2`                    | `Cmd`+`2`
++ | Set capture orientation to `180`       | `Ctrl`+`3`                    | `Cmd`+`3`
++ | Set capture orientation to `270`       | `Ctrl`+`4`                    | `Cmd`+`4`
+  | Expand notification panel              | `Ctrl`+`n`                    | `Cmd`+`n`
+  | Collapse notification panel            | `Ctrl`+`Shift`+`n`            | `Cmd`+`Shift`+`n`
+  | Copy to clipboard³                     | `Ctrl`+`c`                    | `Cmd`+`c`
