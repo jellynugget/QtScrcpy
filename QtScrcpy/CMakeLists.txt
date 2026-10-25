@@ -91,9 +91,9 @@ if (NOT MSVC)
 
     # disable clang-only warnings
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang")
-        add_compile_options(-Wno-nested-anon-types -Wno-c++17-extensions)
+        add_compile_options(-Wno-nested-anon-types -Wno-c++17-extensions -Wno-deprecated-pragma)
     endif()
-    add_compile_options(-Wno-overloaded-virtual)
+    add_compile_options(-Wno-overloaded-virtual -Wno-deprecated-declarations)
 endif()
 
 #
