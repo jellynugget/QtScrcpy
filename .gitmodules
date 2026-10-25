@@ -1,3 +1,4 @@
 [submodule "QtScrcpy/QtScrcpyCore"]
 	path = QtScrcpy/QtScrcpyCore
 	url = https://github.com/jellynugget/QtScrcpyCore.git
+	branch = jack/main
