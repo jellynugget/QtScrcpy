@@ -12,6 +12,7 @@
 
 #include "adbprocess.h"
 #include "../QtScrcpyCore/include/QtScrcpyCore.h"
+#include "../QtScrcpyCore/src/adb/adbdevicemonitor.h"
 #include "audio/audiooutput.h"
 #include "presetconfigdialog.h"
 
@@ -81,6 +82,7 @@ private slots:
 
     void on_videoSourceBox_currentIndexChanged(int index);
     void on_refreshCameraBtn_clicked();
+    void on_autoConnectCheckBox_toggled(bool checked);
 
     void showIpEditMenu(const QPoint &pos);
 
@@ -115,8 +117,12 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private:
+    void autoConnectToDevice(const QString &serial);
+
+private:
     Ui::Widget *ui;
     qsc::AdbProcess m_adb;
+    qsc::AdbDeviceMonitor *m_deviceMonitor;
     QSystemTrayIcon *m_hideIcon;
     QGroupBox *m_advancedDisplayGroup = nullptr;
     QComboBox *m_configLanguageBox = nullptr;

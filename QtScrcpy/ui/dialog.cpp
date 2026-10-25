@@ -35,6 +35,7 @@
 #include "ui_dialog.h"
 #include "videoform.h"
 #include "../groupcontroller/groupcontroller.h"
+#include "../QtScrcpyCore/src/adb/adbdevicemonitor.h"
 
 #ifdef Q_OS_WIN32
 #include "../util/winutils.h"
@@ -209,12 +210,27 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
     connect(&qsc::IDeviceManage::getInstance(), &qsc::IDeviceManage::deviceConnected, this, &Dialog::onDeviceConnected);
     connect(&qsc::IDeviceManage::getInstance(), &qsc::IDeviceManage::deviceDisconnected, this, &Dialog::onDeviceDisconnected);
+
+    // Initialize ADB device monitor for auto-connect
+    m_deviceMonitor = new qsc::AdbDeviceMonitor(this);
+    connect(m_deviceMonitor, &qsc::AdbDeviceMonitor::newDeviceConnected, this, &Dialog::autoConnectToDevice);
+    
+    // Connect auto-connect checkbox signal
+    connect(ui->autoConnectCheckBox, &QCheckBox::toggled, this, &Dialog::on_autoConnectCheckBox_toggled);
+    
+    // Start monitoring if auto-connect checkbox is checked
+    if (ui->autoConnectCheckBox->isChecked()) {
+        m_deviceMonitor->start();
+    }
 }
 
 Dialog::~Dialog()
 {
     qDebug() << "~Dialog()";
     updateBootConfig(false);
+    if (m_deviceMonitor) {
+        m_deviceMonitor->stop();
+    }
     qsc::IDeviceManage::getInstance().disconnectAllDevice();
     delete ui;
 }
@@ -1577,6 +1593,57 @@ void Dialog::on_autoUpdatecheckBox_toggled(bool checked)
     } else {
         m_autoUpdatetimer.stop();
     }
+}
+
+void Dialog::on_autoConnectCheckBox_toggled(bool checked)
+{
+    if (checked) {
+        if (m_deviceMonitor && !m_deviceMonitor->isMonitoring()) {
+            m_deviceMonitor->start();
+            outLog("Auto-connect enabled", true);
+        }
+    } else {
+        if (m_deviceMonitor && m_deviceMonitor->isMonitoring()) {
+            m_deviceMonitor->stop();
+            outLog("Auto-connect disabled", true);
+        }
+    }
+}
+
+void Dialog::autoConnectToDevice(const QString &serial)
+{
+    // Check if auto-connect is enabled via checkbox
+    if (!ui->autoConnectCheckBox->isChecked()) {
+        return;
+    }
+    
+    if (!m_deviceMonitor || !m_deviceMonitor->isMonitoring()) {
+        return;
+    }
+
+    // Check if device is already connected
+    if (qsc::IDeviceManage::getInstance().getDevice(serial)) {
+        qDebug() << "Device already connected:" << serial;
+        return;
+    }
+
+    // Check if device is in the serial box (means it's available)
+    const int index = ui->serialBox->findText(serial);
+    if (index < 0) {
+        // Update device list first
+        on_updateDevice_clicked();
+        // Wait a bit for the update to complete
+        QTimer::singleShot(500, this, [this, serial]() {
+            autoConnectToDevice(serial);
+        });
+        return;
+    }
+
+    outLog(QString("Auto-connecting to device: %1").arg(serial), true);
+
+    // Reuse the normal start path so all UI options (decoder, presets, display) apply
+    ui->serialBox->setCurrentIndex(index);
+    on_startServerBtn_clicked();
 }
 
 void Dialog::loadIpHistory()
