@@ -118,11 +118,13 @@ protected:
 
 private:
     void autoConnectToDevice(const QString &serial);
+    void updateAutoConnectTargets(const QStringList &devices);
 
 private:
     Ui::Widget *ui;
     qsc::AdbProcess m_adb;
-    qsc::AdbDeviceMonitor *m_deviceMonitor;
+    qsc::AdbDeviceMonitor *m_deviceMonitor = nullptr;
+    QString m_autoConnectSerial; // empty = any device
     QSystemTrayIcon *m_hideIcon;
     QGroupBox *m_advancedDisplayGroup = nullptr;
     QComboBox *m_configLanguageBox = nullptr;

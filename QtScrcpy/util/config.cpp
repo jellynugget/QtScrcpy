@@ -93,6 +93,12 @@
 #define COMMON_AUTO_UPDATE_DEVICE_KEY "AutoUpdateDevice"
 #define COMMON_AUTO_UPDATE_DEVICE_DEF true
 
+#define COMMON_AUTO_CONNECT_DEVICE_KEY "AutoConnectDevice"
+#define COMMON_AUTO_CONNECT_DEVICE_DEF true
+
+#define COMMON_AUTO_CONNECT_SERIAL_KEY "AutoConnectSerial"
+#define COMMON_AUTO_CONNECT_SERIAL_DEF ""
+
 #define COMMON_TRAY_MESSAGE_SHOWN_KEY "TrayMessageShown"
 #define COMMON_TRAY_MESSAGE_SHOWN_DEF false
 
@@ -234,6 +240,8 @@ void Config::setUserBootConfig(const UserBootConfig &config)
     m_userData->setValue(COMMON_KEEP_ALIVE_KEY, config.keepAlive);
     m_userData->setValue(COMMON_SIMPLE_MODE_KEY, config.simpleMode);
     m_userData->setValue(COMMON_AUTO_UPDATE_DEVICE_KEY, config.autoUpdateDevice);
+    m_userData->setValue(COMMON_AUTO_CONNECT_DEVICE_KEY, config.autoConnectDevice);
+    m_userData->setValue(COMMON_AUTO_CONNECT_SERIAL_KEY, config.autoConnectSerial);
     m_userData->setValue(COMMON_SHOW_TOOLBAR_KEY, config.showToolbar);
     m_userData->setValue(COMMON_QUIT_ON_CLOSE_KEY, config.quitOnClose);
     m_userData->setValue(COMMON_DECODE_MODE_KEY, config.decodeMode);
@@ -275,6 +283,8 @@ UserBootConfig Config::getUserBootConfig()
     config.keepAlive = m_userData->value(COMMON_KEEP_ALIVE_KEY, COMMON_KEEP_ALIVE_DEF).toBool();
     config.simpleMode = m_userData->value(COMMON_SIMPLE_MODE_KEY, COMMON_SIMPLE_MODE_DEF).toBool();
     config.autoUpdateDevice = m_userData->value(COMMON_AUTO_UPDATE_DEVICE_KEY, COMMON_AUTO_UPDATE_DEVICE_DEF).toBool();
+    config.autoConnectDevice = m_userData->value(COMMON_AUTO_CONNECT_DEVICE_KEY, COMMON_AUTO_CONNECT_DEVICE_DEF).toBool();
+    config.autoConnectSerial = m_userData->value(COMMON_AUTO_CONNECT_SERIAL_KEY, COMMON_AUTO_CONNECT_SERIAL_DEF).toString();
     config.showToolbar =m_userData->value(COMMON_SHOW_TOOLBAR_KEY,COMMON_SHOW_TOOLBAR_DEF).toBool();
     config.quitOnClose = m_userData->value(COMMON_QUIT_ON_CLOSE_KEY, COMMON_QUIT_ON_CLOSE_DEF).toBool();
     config.decodeMode = m_userData->value(COMMON_DECODE_MODE_KEY, COMMON_DECODE_MODE_DEF).toInt();

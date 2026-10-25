@@ -161,6 +161,7 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
                     ui->serialBox->addItem(item);
                     ui->connectedPhoneList->addItem(Config::getInstance().getNickName(item) + "-" + item);
                 }
+                updateAutoConnectTargets(devices);
             } else if (args.contains("show") && args.contains("wlan0")) {
                 QString ip = m_adb.getDeviceIPFromStdOut();
                 if (ip.isEmpty()) {
@@ -215,9 +216,11 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     m_deviceMonitor = new qsc::AdbDeviceMonitor(this);
     connect(m_deviceMonitor, &qsc::AdbDeviceMonitor::newDeviceConnected, this, &Dialog::autoConnectToDevice);
     
-    // Connect auto-connect checkbox signal
-    connect(ui->autoConnectCheckBox, &QCheckBox::toggled, this, &Dialog::on_autoConnectCheckBox_toggled);
-    
+    // Only user picks change the target; list refreshes keep the saved choice
+    connect(ui->autoConnectTargetBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
+        m_autoConnectSerial = ui->autoConnectTargetBox->itemData(index).toString();
+    });
+
     // Start monitoring if auto-connect checkbox is checked
     if (ui->autoConnectCheckBox->isChecked()) {
         m_deviceMonitor->start();
@@ -634,6 +637,9 @@ void Dialog::updateBootConfig(bool toView)
         ui->stayAwakeCheck->setChecked(config.keepAlive);
         ui->useSingleModeCheck->setChecked(config.simpleMode);
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
+        ui->autoConnectCheckBox->setChecked(config.autoConnectDevice);
+        m_autoConnectSerial = config.autoConnectSerial;
+        updateAutoConnectTargets(QStringList());
         ui->showToolbar->setChecked(config.showToolbar);
         ui->quitOnCloseCheck->setChecked(config.quitOnClose);
         ui->decodeModeBox->setCurrentIndex(config.decodeMode);
@@ -678,6 +684,8 @@ void Dialog::updateBootConfig(bool toView)
         config.keepAlive = ui->stayAwakeCheck->isChecked();
         config.simpleMode = ui->useSingleModeCheck->isChecked();
         config.autoUpdateDevice = ui->autoUpdatecheckBox->isChecked();
+        config.autoConnectDevice = ui->autoConnectCheckBox->isChecked();
+        config.autoConnectSerial = m_autoConnectSerial;
         config.showToolbar = ui->showToolbar->isChecked();
         config.quitOnClose = ui->quitOnCloseCheck->isChecked();
         config.decodeMode = ui->decodeModeBox->currentIndex();
@@ -1610,6 +1618,22 @@ void Dialog::on_autoConnectCheckBox_toggled(bool checked)
     }
 }
 
+void Dialog::updateAutoConnectTargets(const QStringList &devices)
+{
+    QSignalBlocker blocker(ui->autoConnectTargetBox);
+    ui->autoConnectTargetBox->clear();
+    ui->autoConnectTargetBox->addItem(tr("any device"), QString());
+    for (const auto &serial : devices) {
+        ui->autoConnectTargetBox->addItem(Config::getInstance().getNickName(serial) + "-" + serial, serial);
+    }
+    // Keep the saved target selectable while it is unplugged
+    if (!m_autoConnectSerial.isEmpty() && !devices.contains(m_autoConnectSerial)) {
+        ui->autoConnectTargetBox->addItem(Config::getInstance().getNickName(m_autoConnectSerial) + "-" + m_autoConnectSerial + tr(" (offline)"),
+                                          m_autoConnectSerial);
+    }
+    ui->autoConnectTargetBox->setCurrentIndex(qMax(0, ui->autoConnectTargetBox->findData(m_autoConnectSerial)));
+}
+
 void Dialog::autoConnectToDevice(const QString &serial)
 {
     // Check if auto-connect is enabled via checkbox
@@ -1618,6 +1642,11 @@ void Dialog::autoConnectToDevice(const QString &serial)
     }
     
     if (!m_deviceMonitor || !m_deviceMonitor->isMonitoring()) {
+        return;
+    }
+
+    // Only connect to the chosen device, unless "any device" is selected
+    if (!m_autoConnectSerial.isEmpty() && serial != m_autoConnectSerial) {
         return;
     }
 

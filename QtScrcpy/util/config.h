@@ -24,6 +24,8 @@ struct UserBootConfig
     bool keepAlive        = false;
     bool simpleMode       = false;
     bool autoUpdateDevice = true;
+    bool autoConnectDevice = true;
+    QString autoConnectSerial; // empty = any device
     bool showToolbar      = true;
     bool quitOnClose      = false; // quit instead of hiding to the system tray when the main window is closed
     int decodeMode        = 0;  // 0=FFmpeg OpenGL (默认), 1=VideoToolbox Metal (Apple Silicon)

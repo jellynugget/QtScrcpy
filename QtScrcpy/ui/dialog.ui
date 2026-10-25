@@ -145,7 +145,14 @@
               <string>auto connect</string>
              </property>
              <property name="checked">
-              <bool>false</bool>
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="autoConnectTargetBox">
+             <property name="toolTip">
+              <string>device to auto connect</string>
              </property>
             </widget>
            </item>
